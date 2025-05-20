@@ -174,6 +174,46 @@ const getUserProfileFromDB = async (
   return isExistUser;
 };
 
+// const updateProfileToDB = async (
+//   user: JwtPayload,
+//   payload: Partial<IUser>
+// ): Promise<Partial<IUser | null>> => {
+//   const { id } = user;
+//   const isExistUser = await User.isExistUserById(id);
+
+//   if (!isExistUser) {
+//     throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
+//   }
+
+//   // Delete old images if new images are provided
+//   if (payload.image && isExistUser.image) {
+//     if (Array.isArray(isExistUser.image)) {
+//       isExistUser.image.forEach((img: string) => unlinkFile(img));
+//     } else {
+//       unlinkFile(isExistUser.image as string);
+//     }
+//   }
+
+//   if (payload.document && isExistUser.document) {
+//     if (Array.isArray(isExistUser.document)) {
+//       isExistUser.document.forEach((doc: string) => unlinkFile(doc));
+//     } else {
+//       unlinkFile(isExistUser.document as string);
+//     }
+//   }
+
+//   // Delete old video if a new video is provided
+//   if (payload.video && isExistUser.video) {
+//     unlinkFile(isExistUser.video as string);
+//   }
+
+//   const updateDoc = await User.findOneAndUpdate({ _id: id }, payload, {
+//     new: true,
+//   });
+
+//   return updateDoc;
+// };
+
 const updateProfileToDB = async (
   user: JwtPayload,
   payload: Partial<IUser>
@@ -185,26 +225,8 @@ const updateProfileToDB = async (
     throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
 
-  // Delete old images if new images are provided
   if (payload.image && isExistUser.image) {
-    if (Array.isArray(isExistUser.image)) {
-      isExistUser.image.forEach((img: string) => unlinkFile(img));
-    } else {
-      unlinkFile(isExistUser.image as string);
-    }
-  }
-
-  if (payload.document && isExistUser.document) {
-    if (Array.isArray(isExistUser.document)) {
-      isExistUser.document.forEach((doc: string) => unlinkFile(doc));
-    } else {
-      unlinkFile(isExistUser.document as string);
-    }
-  }
-
-  // Delete old video if a new video is provided
-  if (payload.video && isExistUser.video) {
-    unlinkFile(isExistUser.video as string);
+    unlinkFile(isExistUser.image as string);
   }
 
   const updateDoc = await User.findOneAndUpdate({ _id: id }, payload, {

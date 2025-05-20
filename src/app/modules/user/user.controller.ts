@@ -52,6 +52,41 @@ const getUserProfile = catchAsync(async (req: Request, res: Response) => {
 });
 
 //update profile
+// const updateProfile = catchAsync(
+//   async (req: Request, res: Response, next: NextFunction) => {
+//     const user = req.user;
+
+//     const value = {
+//       ...req.body,
+//     };
+
+//     let image = getFilePathMultiple(req.files, 'image', 'image');
+//     let document = getFilePathMultiple(req.files, 'doc', 'doc');
+//     let video = getFilePathMultiple(req.files, 'media', 'media');
+
+//     if (image && image.length > 0) {
+//       value.image = image;
+//     }
+
+//     if (document && document.length > 0) {
+//       value.document = document;
+//     }
+
+//     if (video && video.length > 0) {
+//       value.video = video[0];
+//     }
+
+//     const result = await UserService.updateProfileToDB(user, value);
+
+//     sendResponse(res, {
+//       success: true,
+//       statusCode: StatusCodes.OK,
+//       message: 'Profile updated successfully',
+//       data: result,
+//     });
+//   }
+// );
+
 const updateProfile = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
@@ -61,19 +96,9 @@ const updateProfile = catchAsync(
     };
 
     let image = getFilePathMultiple(req.files, 'image', 'image');
-    let document = getFilePathMultiple(req.files, 'doc', 'doc');
-    let video = getFilePathMultiple(req.files, 'media', 'media');
 
     if (image && image.length > 0) {
-      value.image = image;
-    }
-
-    if (document && document.length > 0) {
-      value.document = document;
-    }
-
-    if (video && video.length > 0) {
-      value.video = video[0];
+      value.image = image[0];
     }
 
     const result = await UserService.updateProfileToDB(user, value);

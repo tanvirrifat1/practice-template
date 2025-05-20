@@ -15,15 +15,7 @@ const updateZodSchema = z.object({
   country: z.string().optional(),
 });
 
-const updateLocationZodSchema = z.object({
-  body: z.object({
-    longitude: z.string({ required_error: 'Longitude is required' }),
-    latitude: z.string({ required_error: 'Latitude is required' }),
-  }),
-});
-
 export const UserValidation = {
   createUserZodSchema,
   updateZodSchema,
-  updateLocationZodSchema,
 };

@@ -29,9 +29,7 @@ const userSchema = new Schema<IUser, UserModal>(
       select: 0,
       minlength: 8,
     },
-    subscription: {
-      type: Boolean,
-    },
+
     phone: {
       type: String,
     },
@@ -47,19 +45,10 @@ const userSchema = new Schema<IUser, UserModal>(
       type: Boolean,
       default: false,
     },
-    image: [
-      {
-        type: String,
-      },
-    ],
-    document: [
-      {
-        type: String,
-      },
-    ],
-    video: {
+    image: {
       type: String,
     },
+
     authentication: {
       type: {
         isResetPassword: {
