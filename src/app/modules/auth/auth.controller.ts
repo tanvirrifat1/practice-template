@@ -109,6 +109,17 @@ const resendVerificationEmail = catchAsync(
   }
 );
 
+const loginUserSocial = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthService.loginUserSocial(req.body);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: ' User login successfully',
+    data: result,
+  });
+});
+
 export const AuthController = {
   verifyEmail,
   loginUser,
@@ -118,4 +129,5 @@ export const AuthController = {
   deleteAccount,
   newAccessToken,
   resendVerificationEmail,
+  loginUserSocial,
 };

@@ -11,6 +11,7 @@ export type IUser = {
   image: string;
   phone?: string;
   address?: string;
+  appId: string;
   authentication?: {
     isResetPassword: boolean;
     oneTimeCode: number;

@@ -16,6 +16,55 @@ import cryptoToken from '../../../util/cryptoToken';
 import generateOTP from '../../../util/generateOTP';
 import { User } from '../user/user.model';
 import { ResetToken } from '../resetToken/resetToken.model';
+import { USER_ROLES } from '../../../enums/user';
+
+const loginUserSocial = async (payload: ILoginData) => {
+  const { email, appId, role, type } = payload;
+
+  if (type !== 'social') {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid login type');
+  }
+
+  let user = await User.findOne({ email });
+
+  if (!user) {
+    // Create base user
+    user = await User.create({
+      email,
+      appId,
+      role,
+      verified: true,
+    });
+
+    if (!user) {
+      throw new ApiError(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        'Failed to create user'
+      );
+    }
+  }
+
+  // Generate tokens
+  const payloadData = {
+    id: user._id,
+    role: user.role,
+    email: user.email,
+  };
+
+  const accessToken = jwtHelper.createToken(
+    payloadData,
+    config.jwt.jwt_secret as Secret,
+    config.jwt.jwt_expire_in as string
+  );
+
+  const refreshToken = jwtHelper.createToken(
+    payloadData,
+    config.jwt.jwtRefreshSecret as Secret,
+    config.jwt.jwt_refresh_expire_in as string
+  );
+
+  return { accessToken, refreshToken };
+};
 
 //login
 const loginUserFromDB = async (payload: ILoginData) => {
@@ -337,4 +386,5 @@ export const AuthService = {
   deleteAccountToDB,
   newAccessTokenToUser,
   resendVerificationEmailToDB,
+  loginUserSocial,
 };

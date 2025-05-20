@@ -10,7 +10,7 @@ const userSchema = new Schema<IUser, UserModal>(
   {
     name: {
       type: String,
-      required: true,
+      required: false,
     },
     role: {
       type: String,
@@ -25,16 +25,23 @@ const userSchema = new Schema<IUser, UserModal>(
     },
     password: {
       type: String,
-      required: true,
+      required: false,
       select: 0,
       minlength: 8,
     },
 
+    appId: {
+      type: String,
+      required: false,
+    },
+
     phone: {
       type: String,
+      required: false,
     },
     address: {
       type: String,
+      required: false,
     },
     status: {
       type: String,
@@ -47,6 +54,7 @@ const userSchema = new Schema<IUser, UserModal>(
     },
     image: {
       type: String,
+      required: false,
     },
 
     authentication: {
@@ -70,7 +78,6 @@ const userSchema = new Schema<IUser, UserModal>(
   { timestamps: true }
 );
 
-//exist user check
 userSchema.statics.isExistUserById = async (id: string) => {
   const isExist = await User.findById(id);
   return isExist;
@@ -98,16 +105,23 @@ userSchema.statics.isMatchPassword = async (
 //check user
 userSchema.pre('save', async function (next) {
   //check user
-  const isExist = await User.findOne({ email: this.email });
-  if (isExist) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'Email already exist!');
+
+  console.log(this.email, 'this?.email');
+
+  if (this?.email) {
+    const isExist = await User.findOne({ email: this.email });
+    if (isExist) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Email already exist!');
+    }
   }
 
-  //password hash
-  this.password = await bcrypt.hash(
-    this.password,
-    Number(config.bcrypt_salt_rounds)
-  );
+  if (this?.password) {
+    //password hash
+    this.password = await bcrypt.hash(
+      this.password,
+      Number(config.bcrypt_salt_rounds)
+    );
+  }
   next();
 });
 
