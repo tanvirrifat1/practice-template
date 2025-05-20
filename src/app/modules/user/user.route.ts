@@ -9,6 +9,8 @@ const router = express.Router();
 
 router.post('/create-user', UserController.createUser);
 
+router.post('/create-moderator', UserController.createModeratorFromDb);
+
 router.patch(
   '/update-profile',
   fileUploadHandler,

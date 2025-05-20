@@ -56,6 +56,45 @@ const createUserFromDb = async (payload: IUser) => {
 
 const createModeratorFromDb = async (payload: IUser) => {
   payload.role = USER_ROLES.MODERATOR;
+
+  const newUser = await User.create(payload);
+  if (!newUser) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "User couldn't be created");
+  }
+
+  const otp = generateOTP();
+  const authentication = {
+    oneTimeCode: otp,
+    expireAt: new Date(Date.now() + 30 * 60 * 1000),
+  };
+
+  const emailContent = emailTemplate.createAccount({
+    name: newUser.name,
+    otp,
+    email: newUser.email,
+  });
+  emailHelper.sendEmail(emailContent);
+
+  const updatedUser = await User.findByIdAndUpdate(
+    newUser._id,
+    { authentication },
+    { new: true }
+  );
+  if (!updatedUser) {
+    throw new ApiError(
+      StatusCodes.NOT_FOUND,
+      'Failed to update authentication info'
+    );
+  }
+
+  if (updatedUser.status === 'active') {
+    await sendNotifications({
+      text: `Registered successfully, ${updatedUser.name}`,
+      type: 'ADMIN',
+    });
+  }
+
+  return updatedUser;
 };
 
 const getAllUsers = async (query: Record<string, unknown>) => {
@@ -186,4 +225,5 @@ export const UserService = {
   updateProfileToDB,
   getAllUsers,
   getSingleUser,
+  createModeratorFromDb,
 };

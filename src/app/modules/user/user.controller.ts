@@ -22,6 +22,23 @@ const createUser = catchAsync(
   }
 );
 
+const createModeratorFromDb = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const value = {
+      ...req.body,
+    };
+
+    await UserService.createModeratorFromDb(value);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message:
+        'Please check your email to verify your account. We have sent you an OTP to complete the registration process.',
+    });
+  }
+);
+
 const getUserProfile = catchAsync(async (req: Request, res: Response) => {
   const user = req.user;
   const result = await UserService.getUserProfileFromDB(user);
@@ -96,4 +113,5 @@ export const UserController = {
   updateProfile,
   getAllUser,
   getSingleUser,
+  createModeratorFromDb,
 };
