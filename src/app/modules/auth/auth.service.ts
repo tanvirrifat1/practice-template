@@ -28,15 +28,14 @@ const loginUserSocial = async (payload: ILoginData) => {
   let user = await User.findOne({ email });
 
   if (!user) {
-    // Create base user
-    user = await User.create({
-      email,
-      appId,
-      role,
-      verified: true,
-    });
-
-    if (!user) {
+    try {
+      user = await User.create({
+        email,
+        appId,
+        role,
+        verified: true,
+      });
+    } catch (error) {
       throw new ApiError(
         StatusCodes.INTERNAL_SERVER_ERROR,
         'Failed to create user'
@@ -44,7 +43,6 @@ const loginUserSocial = async (payload: ILoginData) => {
     }
   }
 
-  // Generate tokens
   const payloadData = {
     id: user._id,
     role: user.role,
@@ -63,7 +61,9 @@ const loginUserSocial = async (payload: ILoginData) => {
     config.jwt.jwt_refresh_expire_in as string
   );
 
-  return { accessToken, refreshToken };
+  const userData: any = user.toObject();
+
+  return { accessToken, refreshToken, userData };
 };
 
 //login
