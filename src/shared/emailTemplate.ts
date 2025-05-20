@@ -4,18 +4,31 @@ const createAccount = (values: ICreateAccount) => {
   const data = {
     to: values.email,
     subject: 'Verify your account',
-    html: `<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 50px; padding: 20px; color: #555;">
-    <div style="width: 100%; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fff; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
-        <img src="https://res.cloudinary.com/dvi9q02vy/image/upload/v1737179053/gkkj707xhfvi1m98yxcb.jpg" alt="Logo" style="display: block; margin: 0 auto 20px; width:150px" />
-          <h2 style="color: #BB6D42; font-size: 24px; margin-bottom: 20px;">Hi ${values.name},</h2>
-        <div style="text-align: center;">
-            <p style="color: #555; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">Your single use code is:</p>
-            <div style="background-color: #BB6D42; width: 120px; padding: 10px; text-align: center; border-radius: 8px; color: #fff; font-size: 25px; letter-spacing: 2px; margin: 20px auto;">${values.otp}</div>
-            <p style="color: #555; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">This code is valid for 3 minutes.</p>
-              <p style="color: #555; font-size: 16px; line-height: 1.5; margin-bottom: 20px;text-align:left">If you didn't request this code, you can safely ignore this email. Someone else might have typed your email address by mistake.</p>
-        </div>
+    html: `
+<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 40px;">
+  <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+    <h2 style="color: #333333; font-size: 22px;">Hi ${values.name},</h2>
+    <p style="color: #555555; font-size: 16px; line-height: 1.6;">
+      Thank you for signing up. Your one-time verification code is below:
+    </p>
+    <div style="text-align: center; margin: 30px 0;">
+      <span style="background-color: #BB6D42; color: #ffffff; padding: 12px 24px; font-size: 24px; letter-spacing: 3px; border-radius: 6px; display: inline-block;">
+        ${values.otp}
+      </span>
     </div>
-</body>`,
+    <p style="color: #555555; font-size: 16px; line-height: 1.6;">
+      This code is valid for 3 minutes.
+    </p>
+    <p style="color: #888888; font-size: 14px; line-height: 1.6;">
+      If you did not request this code, you can safely ignore this email.
+    </p>
+    <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+    <p style="color: #999999; font-size: 13px; text-align: center;">
+      © ${new Date().getFullYear()} Your Company. All rights reserved.
+    </p>
+  </div>
+</body>
+`,
   };
   return data;
 };
@@ -24,17 +37,31 @@ const resetPassword = (values: IResetPassword) => {
   const data = {
     to: values.email,
     subject: 'Reset your password',
-    html: `<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 50px; padding: 20px; color: #555;">
-    <div style="width: 100%; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fff; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
-        <img src="https://res.cloudinary.com/dvi9q02vy/image/upload/v1737179053/gkkj707xhfvi1m98yxcb.jpg" alt="Logo" style="display: block; margin: 0 auto 20px; width:150px" />
-        <div style="text-align: center;">
-            <p style="color: #555; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">Your single use code is:</p>
-            <div style="background-color: #BB6D42; width: 120px; padding: 10px; text-align: center; border-radius: 8px; color: #fff; font-size: 25px; letter-spacing: 2px; margin: 20px auto;">${values.otp}</div>
-            <p style="color: #555; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">This code is valid for 3 minutes.</p>
-              <p style="color: #555; font-size: 16px; line-height: 1.5; margin-bottom: 20px;text-align:left">If you didn't request this code, you can safely ignore this email. Someone else might have typed your email address by mistake.</p>
-        </div>
+    html: `
+<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 40px;">
+  <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+    <h2 style="color: #333333; font-size: 22px;">Password Reset Request</h2>
+    <p style="color: #555555; font-size: 16px; line-height: 1.6;">
+      We received a request to reset your password. Use the following code to proceed:
+    </p>
+    <div style="text-align: center; margin: 30px 0;">
+      <span style="background-color: #BB6D42; color: #ffffff; padding: 12px 24px; font-size: 24px; letter-spacing: 3px; border-radius: 6px; display: inline-block;">
+        ${values.otp}
+      </span>
     </div>
-</body>`,
+    <p style="color: #555555; font-size: 16px; line-height: 1.6;">
+      This code is valid for 3 minutes.
+    </p>
+    <p style="color: #888888; font-size: 14px; line-height: 1.6;">
+      If you did not request a password reset, please ignore this email.
+    </p>
+    <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+    <p style="color: #999999; font-size: 13px; text-align: center;">
+      © ${new Date().getFullYear()} Your Company. All rights reserved.
+    </p>
+  </div>
+</body>
+`,
   };
   return data;
 };
