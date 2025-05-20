@@ -13,45 +13,49 @@ import unlinkFile from '../../../shared/unlinkFile';
 
 const createUserFromDb = async (payload: IUser) => {
   payload.role = USER_ROLES.USER;
-  const result = await User.create(payload);
 
-  if (!result) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
+  const newUser = await User.create(payload);
+  if (!newUser) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "User couldn't be created");
   }
 
   const otp = generateOTP();
-  const emailValues = {
-    name: result.name,
-    otp,
-    email: result.email,
-  };
-
-  const accountEmailTemplate = emailTemplate.createAccount(emailValues);
-  emailHelper.sendEmail(accountEmailTemplate);
-
-  // Update user with authentication details
   const authentication = {
     oneTimeCode: otp,
-    expireAt: new Date(Date.now() + 3 * 60000),
+    expireAt: new Date(Date.now() + 30 * 60 * 1000),
   };
-  const updatedUser = await User.findOneAndUpdate(
-    { _id: result._id },
-    { $set: { authentication } }
+
+  const emailContent = emailTemplate.createAccount({
+    name: newUser.name,
+    otp,
+    email: newUser.email,
+  });
+  emailHelper.sendEmail(emailContent);
+
+  const updatedUser = await User.findByIdAndUpdate(
+    newUser._id,
+    { authentication },
+    { new: true }
   );
   if (!updatedUser) {
-    throw new ApiError(StatusCodes.NOT_FOUND, 'User not found for update');
+    throw new ApiError(
+      StatusCodes.NOT_FOUND,
+      'Failed to update authentication info'
+    );
   }
 
-  if (result.status === 'active') {
-    const data = {
-      text: `Registered successfully, ${result?.name}`,
+  if (updatedUser.status === 'active') {
+    await sendNotifications({
+      text: `Registered successfully, ${updatedUser.name}`,
       type: 'ADMIN',
-    };
-
-    await sendNotifications(data);
+    });
   }
 
-  return result;
+  return updatedUser;
+};
+
+const createModeratorFromDb = async (payload: IUser) => {
+  payload.role = USER_ROLES.MODERATOR;
 };
 
 const getAllUsers = async (query: Record<string, unknown>) => {
@@ -108,17 +112,8 @@ const getAllUsers = async (query: Record<string, unknown>) => {
     User.countDocuments(whereConditions),
   ]);
 
-  // Format the `updatedAt` field
-  const formattedUsers = users?.map(user => ({
-    ...user,
-    updatedAt: user.updatedAt
-      ? new Date(user.updatedAt).toISOString().split('T')[0]
-      : null,
-  }));
-
-  // Meta information for pagination
   return {
-    result: formattedUsers,
+    data: users,
     meta: {
       total,
       limit: pageSize,
