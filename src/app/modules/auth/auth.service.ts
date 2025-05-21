@@ -116,6 +116,9 @@ const verifyOtpAndLogin = async (email: string, otp: any) => {
 
   const { oneTimeCode, expireAt } = user.authentication;
 
+  console.log(new Date());
+  console.log(new Date(expireAt));
+
   if (new Date() > new Date(expireAt)) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'OTP has expired');
   }
