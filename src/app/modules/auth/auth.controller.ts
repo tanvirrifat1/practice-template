@@ -43,7 +43,6 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
     success: true,
     statusCode: StatusCodes.OK,
     message: 'OTP sent to your email. Please verify to login.',
-    data: null,
   });
 });
 

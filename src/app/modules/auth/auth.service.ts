@@ -67,40 +67,40 @@ const loginUserSocial = async (payload: ILoginData) => {
 
 const loginUserFromDB = async (payload: ILoginData) => {
   const { email, password } = payload;
-  const isExistUser = await User.findOne({ email }).select('+password');
-  if (!isExistUser) {
+
+  const user = await User.findOne({ email }).select('+password');
+  if (!user) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
 
-  if (!isExistUser.verified) {
+  if (!user.verified) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
       'Please verify your account, then try to login again'
     );
   }
 
-  const isMatch = await User.isMatchPassword(password, isExistUser.password);
+  const isMatch = await User.isMatchPassword(password, user.password);
   if (!isMatch) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Password is incorrect!');
   }
 
-  // Generate OTP
+  // Generate OTP & Expiry
   const otp = generateOTP();
-  const authentication = {
-    oneTimeCode: otp,
-    expireAt: new Date(Date.now() + 30 * 60 * 1000),
-  };
+  const expireAt = new Date(Date.now() + 30 * 60 * 1000);
+  const authentication = { oneTimeCode: otp, expireAt };
 
-  // Send OTP email
+  // Prepare email content (non-blocking)
   const emailContent = emailTemplate.createAccount({
-    name: isExistUser.name,
+    name: user.name,
     otp,
-    email: isExistUser.email,
+    email: user.email,
   });
-  await emailHelper.sendEmail(emailContent);
 
-  // Save OTP to user
-  await User.findByIdAndUpdate(isExistUser._id, { authentication });
+  void Promise.all([
+    User.findByIdAndUpdate(user._id, { authentication }),
+    emailHelper.sendEmail(emailContent),
+  ]);
 
   return {
     message: 'OTP sent to your email. Please verify to continue.',
@@ -132,16 +132,18 @@ const verifyOtpAndLogin = async (email: string, otp: any) => {
   const accessToken = jwtHelper.createToken(
     { id: user._id, role: user.role, email: user.email },
     config.jwt.jwt_secret as Secret,
-    '35d'
+    config.jwt.jwt_expire_in as string
   );
 
   const refreshToken = jwtHelper.createToken(
     { id: user._id, role: user.role, email: user.email },
     config.jwt.jwtRefreshSecret as Secret,
-    '65d'
+    config.jwt.jwt_refresh_expire_in as string
   );
 
-  return { accessToken, refreshToken };
+  const userData: any = user.toObject();
+
+  return { accessToken, refreshToken, userData };
 };
 
 //forget password
