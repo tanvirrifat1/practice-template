@@ -4,8 +4,21 @@ const createVerifyEmailZodSchema = z.object({
   body: z.object({
     email: z.string({ required_error: 'Email is required' }),
     oneTimeCode: z
-      .union([z.string().transform((val) => parseFloat(val)), z.number()])
-      .refine((val:any) => !isNaN(val), { message: "One time code is required" })
+      .union([z.string().transform(val => parseFloat(val)), z.number()])
+      .refine((val: any) => !isNaN(val), {
+        message: 'One time code is required',
+      }),
+  }),
+});
+
+const createVerifyEmailLogin = z.object({
+  body: z.object({
+    email: z.string({ required_error: 'Email is required' }),
+    otp: z
+      .union([z.string().transform(val => parseFloat(val)), z.number()])
+      .refine((val: any) => !isNaN(val), {
+        message: 'One time code is required',
+      }),
   }),
 });
 
@@ -49,4 +62,5 @@ export const AuthValidation = {
   createLoginZodSchema,
   createResetPasswordZodSchema,
   createChangePasswordZodSchema,
+  createVerifyEmailLogin,
 };

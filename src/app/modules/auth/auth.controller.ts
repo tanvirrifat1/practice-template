@@ -17,9 +17,10 @@ const verifyEmail = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const loginUser = catchAsync(async (req: Request, res: Response) => {
-  const { ...loginData } = req.body;
-  const result = await AuthService.loginUserFromDB(loginData);
+const verifyOtpAndLogin = catchAsync(async (req: Request, res: Response) => {
+  const { email, otp } = req.body;
+
+  const result = await AuthService.verifyOtpAndLogin(email, otp);
 
   res.cookie('refreshToken', result.refreshToken, {
     secure: config.node_env === 'production',
@@ -29,8 +30,20 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
-    message: 'User login successfully',
+    message: 'User logged in successfully',
     data: result,
+  });
+});
+
+const loginUser = catchAsync(async (req: Request, res: Response) => {
+  const loginData = req.body;
+  await AuthService.loginUserFromDB(loginData);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'OTP sent to your email. Please verify to login.',
+    data: null,
   });
 });
 
@@ -130,4 +143,5 @@ export const AuthController = {
   newAccessToken,
   resendVerificationEmail,
   loginUserSocial,
+  verifyOtpAndLogin,
 };

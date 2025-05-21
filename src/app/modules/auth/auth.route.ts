@@ -14,6 +14,8 @@ router.post(
 
 router.post('/login-social', AuthController.loginUserSocial);
 
+router.post('/verifyOtpAndLogin', AuthController.verifyOtpAndLogin);
+
 router.post('/refresh-token', AuthController.newAccessToken);
 
 router.post(

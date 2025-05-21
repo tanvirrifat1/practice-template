@@ -16,7 +16,6 @@ import cryptoToken from '../../../util/cryptoToken';
 import generateOTP from '../../../util/generateOTP';
 import { User } from '../user/user.model';
 import { ResetToken } from '../resetToken/resetToken.model';
-import { USER_ROLES } from '../../../enums/user';
 
 const loginUserSocial = async (payload: ILoginData) => {
   const { email, appId, role, type } = payload;
@@ -66,7 +65,6 @@ const loginUserSocial = async (payload: ILoginData) => {
   return { accessToken, refreshToken, userData };
 };
 
-//login
 const loginUserFromDB = async (payload: ILoginData) => {
   const { email, password } = payload;
   const isExistUser = await User.findOne({ email }).select('+password');
@@ -74,7 +72,6 @@ const loginUserFromDB = async (payload: ILoginData) => {
     throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
 
-  //check verified and status
   if (!isExistUser.verified) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
@@ -82,32 +79,64 @@ const loginUserFromDB = async (payload: ILoginData) => {
     );
   }
 
-  //check user status
-  if (isExistUser.status === 'delete') {
-    throw new ApiError(
-      StatusCodes.BAD_REQUEST,
-      'You don’t have permission to access this content.It looks like your account has been deactivated.'
-    );
-  }
-
-  //check match password
-  if (
-    password &&
-    !(await User.isMatchPassword(password, isExistUser.password))
-  ) {
+  const isMatch = await User.isMatchPassword(password, isExistUser.password);
+  if (!isMatch) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Password is incorrect!');
   }
 
-  //create token
+  // Generate OTP
+  const otp = generateOTP();
+  const authentication = {
+    oneTimeCode: otp,
+    expireAt: new Date(Date.now() + 30 * 60 * 1000),
+  };
+
+  // Send OTP email
+  const emailContent = emailTemplate.createAccount({
+    name: isExistUser.name,
+    otp,
+    email: isExistUser.email,
+  });
+  await emailHelper.sendEmail(emailContent);
+
+  // Save OTP to user
+  await User.findByIdAndUpdate(isExistUser._id, { authentication });
+
+  return {
+    message: 'OTP sent to your email. Please verify to continue.',
+  };
+};
+
+const verifyOtpAndLogin = async (email: string, otp: any) => {
+  const user = await User.findOne({ email }).select('+authentication');
+
+  if (!user || !user.authentication) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid user or no OTP found');
+  }
+
+  const { oneTimeCode, expireAt } = user.authentication;
+
+  if (new Date() > new Date(expireAt)) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'OTP has expired');
+  }
+
+  if (oneTimeCode !== otp) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid OTP');
+  }
+
+  // Clear OTP after successful verification
+  user.authentication = undefined;
+  await user.save();
+
+  // Generate tokens
   const accessToken = jwtHelper.createToken(
-    { id: isExistUser._id, role: isExistUser.role, email: isExistUser.email },
+    { id: user._id, role: user.role, email: user.email },
     config.jwt.jwt_secret as Secret,
     '35d'
   );
 
-  //create token
   const refreshToken = jwtHelper.createToken(
-    { id: isExistUser._id, role: isExistUser.role, email: isExistUser.email },
+    { id: user._id, role: user.role, email: user.email },
     config.jwt.jwtRefreshSecret as Secret,
     '65d'
   );
@@ -387,4 +416,5 @@ export const AuthService = {
   newAccessTokenToUser,
   resendVerificationEmailToDB,
   loginUserSocial,
+  verifyOtpAndLogin,
 };

@@ -37,6 +37,7 @@ const createUserFromDb = async (payload: IUser) => {
     { authentication },
     { new: true }
   );
+
   if (!updatedUser) {
     throw new ApiError(
       StatusCodes.NOT_FOUND,
