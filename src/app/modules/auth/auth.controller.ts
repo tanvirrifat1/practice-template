@@ -17,6 +17,17 @@ const verifyEmail = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const loginUser = catchAsync(async (req: Request, res: Response) => {
+  const loginData = req.body;
+  await AuthService.loginUserFromDB(loginData);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'OTP sent to your email. Please verify to login.',
+  });
+});
+
 const verifyOtpAndLogin = catchAsync(async (req: Request, res: Response) => {
   const { email, otp } = req.body;
 
@@ -32,17 +43,6 @@ const verifyOtpAndLogin = catchAsync(async (req: Request, res: Response) => {
     statusCode: StatusCodes.OK,
     message: 'User logged in successfully',
     data: result,
-  });
-});
-
-const loginUser = catchAsync(async (req: Request, res: Response) => {
-  const loginData = req.body;
-  await AuthService.loginUserFromDB(loginData);
-
-  sendResponse(res, {
-    success: true,
-    statusCode: StatusCodes.OK,
-    message: 'OTP sent to your email. Please verify to login.',
   });
 });
 
