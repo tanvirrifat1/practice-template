@@ -6,4 +6,5 @@ export type IQuestionAndAns = {
   answer: string;
   room: Types.ObjectId;
   createRoom: boolean;
+  roomId?: Types.ObjectId;
 };
