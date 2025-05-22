@@ -8,27 +8,6 @@ import moment from 'moment';
 import { QuestionAnswer } from './ans.model';
 
 const createChat = async (payload: IQuestionAndAns) => {
-  // Step 1: Check if the question is business-related
-  const checkResult = await openai.chat.completions.create({
-    model: 'gpt-4',
-    messages: [
-      {
-        role: 'system',
-        content:
-          'Determine if the user\'s question is related to business. Respond only with "yes" or "no".',
-      },
-      { role: 'user', content: payload.question },
-    ],
-  });
-
-  const isBusinessRelated = checkResult.choices[0].message?.content
-    ?.trim()
-    .toLowerCase();
-
-  if (isBusinessRelated !== 'yes') {
-    return 'I only answer business-related questions.';
-  }
-
   // Step 2: Generate a business-related response
   const result = await openai.chat.completions.create({
     model: 'gpt-4',

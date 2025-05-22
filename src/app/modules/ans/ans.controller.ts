@@ -6,6 +6,8 @@ import { AnsService } from './ans.service';
 const createChat = catchAsync(async (req, res) => {
   const user = req.user.id;
 
+  console.log(user);
+
   const value = {
     ...req.body,
     user,
