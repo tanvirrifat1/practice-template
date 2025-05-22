@@ -6,5 +6,4 @@ export type IQuestionAndAns = {
   answer: string;
   room: Types.ObjectId;
   createRoom: boolean;
-  mode: string;
 };
