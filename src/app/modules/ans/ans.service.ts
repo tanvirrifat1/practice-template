@@ -3,8 +3,6 @@ import ApiError from '../../../errors/ApiError';
 import openai from '../../../shared/openAi';
 import { Room } from '../room/room.model';
 import { IQuestionAndAns } from './ans.interface';
-import OpenAI from 'openai';
-import moment from 'moment';
 import { QuestionAnswer } from './ans.model';
 
 // const createChat = async (payload: IQuestionAndAns) => {
@@ -62,24 +60,29 @@ import { QuestionAnswer } from './ans.model';
 // };
 
 const createChat = async (payload: IQuestionAndAns) => {
-  // 1. Find the room by roomId
+  let room;
 
-  if (!payload.roomId) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'roomId is required!');
+  // CASE 1: Use existing room by roomId
+  if (payload.roomId) {
+    room = await Room.findById(payload.roomId);
+    if (!room) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'Room not found!');
+    }
   }
 
-  const room = await Room.findById(payload.roomId);
-
-  if (!room) {
-    throw new ApiError(StatusCodes.NOT_FOUND, 'Room not found!');
+  // CASE 2: Create a new room if createRoom is true OR no existing room found
+  if (!room || payload.createRoom === true) {
+    room = await Room.create({
+      user: payload.user,
+      roomName: payload.question,
+    });
   }
 
-  // 2. Get previous Q&A from this room
+  // Get previous Q&A only if it's not a new room
   const previousQA = await QuestionAnswer.find({ room: room._id }).sort({
     createdAt: 1,
   });
 
-  // 3. Format messages for OpenAI
   const historyMessages = previousQA.flatMap(item => [
     { role: 'user', content: item.question },
     { role: 'assistant', content: item.answer || '' },
@@ -89,13 +92,12 @@ const createChat = async (payload: IQuestionAndAns) => {
     {
       role: 'system',
       content:
-        'You are an AI expert in business strategy. Answer business-related questions only.',
+        'You are a helpful AI assistant. Answer the user’s question appropriately.',
     },
     ...historyMessages,
     { role: 'user', content: payload.question },
   ];
 
-  // 4. Generate response from OpenAI
   const result = await openai.chat.completions.create({
     model: 'gpt-4',
     messages,
@@ -103,7 +105,6 @@ const createChat = async (payload: IQuestionAndAns) => {
 
   const answer = result.choices[0].message?.content;
 
-  // 5. Save current Q&A to DB
   const value = {
     question: payload.question,
     answer,
@@ -112,7 +113,11 @@ const createChat = async (payload: IQuestionAndAns) => {
   };
 
   const savedQA = await QuestionAnswer.create(value);
-  return savedQA;
+
+  return {
+    roomId: room._id,
+    savedQA,
+  };
 };
 
 export const AnsService = {
